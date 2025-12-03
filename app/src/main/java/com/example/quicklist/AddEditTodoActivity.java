@@ -19,6 +19,7 @@ public class AddEditTodoActivity extends AppCompatActivity {
     private Todo currentTodo;
     private boolean isEditMode = false;
     private TodoDatabase database;
+    private boolean spinnerReady = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,21 +47,28 @@ public class AddEditTodoActivity extends AppCompatActivity {
         long todoId = getIntent().getLongExtra("TODO_ID", -1);
         if (todoId != -1) {
             isEditMode = true;
-            currentTodo = database.getTodoById(todoId);
-            if (currentTodo != null) {
-                populateFields();
-            }
             if (getSupportActionBar() != null) {
                 getSupportActionBar().setTitle("Edit Task");
             }
+
+            // Load todo asynchronously
+            database.getTodoById(todoId, new TodoDatabase.TodoCallback() {
+                @Override
+                public void onSuccess(Todo todo) {
+                    currentTodo = todo;
+                    if (currentTodo != null) {
+                        // Setup spinner first, then populate fields
+                        setupCategorySpinner();
+                    }
+                }
+            });
         } else {
             if (getSupportActionBar() != null) {
                 getSupportActionBar().setTitle("Add New Task");
             }
+            // Just setup spinner for new tasks
+            setupCategorySpinner();
         }
-
-        // Setup category spinner
-        setupCategorySpinner();
 
         // Save button click
         btnSave.setOnClickListener(v -> saveTodo());
@@ -74,33 +82,51 @@ public class AddEditTodoActivity extends AppCompatActivity {
         categories.add("Health");
         categories.add("Other");
 
-        // Add existing custom categories
-        List<String> existingCategories = database.getCategories();
-        for (String cat : existingCategories) {
-            if (!categories.contains(cat)) {
-                categories.add(cat);
-            }
-        }
+        // Load existing custom categories asynchronously
+        database.getCategories(new TodoDatabase.CategoriesCallback() {
+            @Override
+            public void onSuccess(List<String> existingCategories) {
+                for (String cat : existingCategories) {
+                    if (!categories.contains(cat)) {
+                        categories.add(cat);
+                    }
+                }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_item,
-                categories
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        categorySpinner.setAdapter(adapter);
+                // Setup adapter after categories are loaded
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                        AddEditTodoActivity.this,
+                        android.R.layout.simple_spinner_item,
+                        categories
+                );
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                categorySpinner.setAdapter(adapter);
+                spinnerReady = true;
+
+                // If editing, populate the fields now that spinner is ready
+                if (isEditMode && currentTodo != null) {
+                    populateFields();
+                }
+            }
+        });
     }
 
     private void populateFields() {
+        if (!spinnerReady) {
+            // Spinner not ready yet, will be called again when it is
+            return;
+        }
+
         etTitle.setText(currentTodo.getTitle());
         etDescription.setText(currentTodo.getDescription());
         etAmount.setText(String.valueOf(currentTodo.getAmount()));
 
         // Set category spinner selection
         ArrayAdapter<String> adapter = (ArrayAdapter<String>) categorySpinner.getAdapter();
-        int position = adapter.getPosition(currentTodo.getCategory());
-        if (position >= 0) {
-            categorySpinner.setSelection(position);
+        if (adapter != null) {
+            int position = adapter.getPosition(currentTodo.getCategory());
+            if (position >= 0) {
+                categorySpinner.setSelection(position);
+            }
         }
     }
 

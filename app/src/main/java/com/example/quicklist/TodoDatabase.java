@@ -45,26 +45,49 @@ public class TodoDatabase {
     }
 
     // Get todo by ID (synchronous - runs on background automatically in Room)
-    public Todo getTodoById(long id) {
-        try {
-            // This needs to run on background thread
-            TodoEntity entity = todoDao.getTodoById(id);
-            return entity != null ? entity.toTodo() : null;
-        } catch (Exception e) {
-            Log.e(TAG, "Error getting todo by id", e);
-            return null;
-        }
+    public void getTodoById(final long id, final TodoCallback callback) {
+        new AsyncTask<Void, Void, Todo>() {
+            @Override
+            protected Todo doInBackground(Void... voids) {
+                try {
+                    TodoEntity entity = todoDao.getTodoById(id);
+                    return entity != null ? entity.toTodo() : null;
+                } catch (Exception e) {
+                    Log.e(TAG, "Error getting todo by id", e);
+                    return null;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Todo todo) {
+                if (callback != null) {
+                    callback.onSuccess(todo);
+                }
+            }
+        }.execute();
     }
 
     // Get categories (synchronous)
-    public List<String> getCategories() {
-        try {
-            List<String> categories = todoDao.getAllCategories();
-            return categories != null ? categories : new ArrayList<>();
-        } catch (Exception e) {
-            Log.e(TAG, "Error getting categories", e);
-            return new ArrayList<>();
-        }
+    public void getCategories(final CategoriesCallback callback) {
+        new AsyncTask<Void, Void, List<String>>() {
+            @Override
+            protected List<String> doInBackground(Void... voids) {
+                try {
+                    List<String> categories = todoDao.getAllCategories();
+                    return categories != null ? categories : new ArrayList<>();
+                } catch (Exception e) {
+                    Log.e(TAG, "Error getting categories", e);
+                    return new ArrayList<>();
+                }
+            }
+
+            @Override
+            protected void onPostExecute(List<String> categories) {
+                if (callback != null) {
+                    callback.onSuccess(categories);
+                }
+            }
+        }.execute();
     }
 
     // Add new todo with callback
@@ -170,6 +193,14 @@ public class TodoDatabase {
     // Callback interfaces
     public interface TodoListCallback {
         void onSuccess(List<Todo> todos);
+    }
+
+    public interface TodoCallback {
+        void onSuccess(Todo todo);
+    }
+
+    public interface CategoriesCallback {
+        void onSuccess(List<String> categories);
     }
 
     public interface OperationCallback {

@@ -78,31 +78,37 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
     private void setupCategorySpinner() {
         List<String> categories = new ArrayList<>();
         categories.add("All");
-        categories.addAll(database.getCategories());
 
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_item,
-                categories
-        );
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        categorySpinner.setAdapter(spinnerAdapter);
-
-        // Set selection to current filter
-        int position = categories.indexOf(selectedCategory);
-        if (position >= 0) {
-            categorySpinner.setSelection(position);
-        }
-
-        categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        database.getCategories(new TodoDatabase.CategoriesCallback() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                selectedCategory = categories.get(position);
-                updateTodoList();
+            public void onSuccess(List<String> dbCategories) {
+                categories.addAll(dbCategories);
+
+                ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
+                        MainActivity.this,
+                        android.R.layout.simple_spinner_item,
+                        categories
+                );
+                spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                categorySpinner.setAdapter(spinnerAdapter);
+
+                // Set selection to current filter
+                int position = categories.indexOf(selectedCategory);
+                if (position >= 0) {
+                    categorySpinner.setSelection(position);
+                }
+
+                categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        selectedCategory = categories.get(position);
+                        updateTodoList();
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {}
+                });
             }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
         });
     }
 
