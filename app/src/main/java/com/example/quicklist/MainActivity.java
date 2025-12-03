@@ -1,13 +1,22 @@
 package com.example.quicklist;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -19,14 +28,30 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
     private TodoAdapter adapter;
     private FloatingActionButton fabAdd;
     private Spinner categorySpinner;
+    private EditText searchBar;
     private List<Todo> allTodos;
     private String selectedCategory = "All";
+    private String searchQuery = "";
     private TodoDatabase database;
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Load theme preference
+        preferences = getSharedPreferences("QuickListPrefs", MODE_PRIVATE);
+        boolean isDarkMode = preferences.getBoolean("dark_mode", false);
+        if (isDarkMode) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Setup toolbar
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         // Initialize database
         database = TodoDatabase.getInstance(this);
@@ -35,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
         recyclerView = findViewById(R.id.recyclerView);
         fabAdd = findViewById(R.id.fabAdd);
         categorySpinner = findViewById(R.id.categorySpinner);
+        searchBar = findViewById(R.id.searchBar);
 
         // Setup RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -48,6 +74,9 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
         // Setup category spinner
         setupCategorySpinner();
 
+        // Setup search bar
+        setupSearchBar();
+
         // FAB click listener
         fabAdd.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,6 +84,99 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
                 Intent intent = new Intent(MainActivity.this, AddEditTodoActivity.class);
                 startActivity(intent);
             }
+        });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_dark_theme) {
+            toggleDarkMode();
+            return true;
+        } else if (id == R.id.action_about) {
+            showAboutDialog();
+            return true;
+        } else if (id == R.id.action_export) {
+            exportList();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void toggleDarkMode() {
+        boolean isDarkMode = preferences.getBoolean("dark_mode", false);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("dark_mode", !isDarkMode);
+        editor.apply();
+
+        // Restart activity to apply theme
+        recreate();
+    }
+
+    private void showAboutDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("About QuickList")
+                .setMessage("QuickList - Simple Task Manager\n\n" +
+                        "Version 1.0\n\n" +
+                        "A simple and efficient todo list app to help you stay organized.\n\n" +
+                        "Features:\n" +
+                        "• Create and manage tasks\n" +
+                        "• Organize by categories\n" +
+                        "• Search and filter\n" +
+                        "• Track quantities\n" +
+                        "• Dark mode support")
+                .setPositiveButton("OK", null)
+                .show();
+    }
+
+    private void exportList() {
+        if (allTodos.isEmpty()) {
+            Toast.makeText(this, "No tasks to export", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        StringBuilder content = new StringBuilder();
+        content.append("QuickList - My Tasks\n\n");
+
+        for (Todo todo : allTodos) {
+            content.append(todo.isCompleted() ? "☑ " : "☐ ");
+            content.append(todo.getTitle());
+            if (!todo.getDescription().isEmpty()) {
+                content.append("\n  ").append(todo.getDescription());
+            }
+            content.append("\n  Category: ").append(todo.getCategory());
+            content.append(" | Qty: ").append(todo.getAmount());
+            content.append("\n\n");
+        }
+
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "My QuickList Tasks");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, content.toString());
+        startActivity(Intent.createChooser(shareIntent, "Share tasks via"));
+    }
+
+    private void setupSearchBar() {
+        searchBar.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                searchQuery = s.toString().toLowerCase().trim();
+                updateTodoList();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
         });
     }
 
@@ -113,17 +235,24 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
     }
 
     private List<Todo> getFilteredTodos() {
-        if (selectedCategory.equals("All")) {
-            return new ArrayList<>(allTodos);
-        } else {
-            List<Todo> filtered = new ArrayList<>();
-            for (Todo todo : allTodos) {
-                if (todo.getCategory().equals(selectedCategory)) {
-                    filtered.add(todo);
-                }
+        List<Todo> filtered = new ArrayList<>();
+
+        for (Todo todo : allTodos) {
+            // Apply category filter
+            boolean matchesCategory = selectedCategory.equals("All") ||
+                    todo.getCategory().equals(selectedCategory);
+
+            // Apply search filter
+            boolean matchesSearch = searchQuery.isEmpty() ||
+                    todo.getTitle().toLowerCase().contains(searchQuery) ||
+                    todo.getDescription().toLowerCase().contains(searchQuery);
+
+            if (matchesCategory && matchesSearch) {
+                filtered.add(todo);
             }
-            return filtered;
         }
+
+        return filtered;
     }
 
     private void updateTodoList() {
