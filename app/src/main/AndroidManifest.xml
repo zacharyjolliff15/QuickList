@@ -13,20 +13,27 @@
         android:theme="@style/Theme.QuickList"
         tools:targetApi="31">
 
-        <!-- Main Activity -->
+        <!-- Splash Screen as launcher -->
         <activity
-            android:name=".MainActivity"
+            android:name=".SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.QuickList">
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- Add/Edit Todo Activity - THIS IS REQUIRED -->
+        <!-- Main Activity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.QuickList" />
+
+        <!-- Add/Edit Todo Activity -->
         <activity
             android:name=".AddEditTodoActivity"
+            android:exported="false"
             android:parentActivityName=".MainActivity"
             android:theme="@style/Theme.QuickList"/>
 
