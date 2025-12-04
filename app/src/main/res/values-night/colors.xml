@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="text_primary">#FFFFFF</color>        <!-- night: make *all* text white -->
+    <color name="search_text_color">#212121</color>
+    <color name="search_hint_color">#9E9E9E</color>
+    <color name="white">#FFFFFF</color>
+</resources>
