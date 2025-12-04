@@ -37,7 +37,6 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Load theme preference
         preferences = getSharedPreferences("QuickListPrefs", MODE_PRIVATE);
         boolean isDarkMode = preferences.getBoolean("dark_mode", false);
         if (isDarkMode) {
@@ -49,35 +48,27 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Setup toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // Initialize database
         database = TodoDatabase.getInstance(this);
 
-        // Initialize views
         recyclerView = findViewById(R.id.recyclerView);
         fabAdd = findViewById(R.id.fabAdd);
         categorySpinner = findViewById(R.id.categorySpinner);
         searchBar = findViewById(R.id.searchBar);
 
-        // Setup RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         allTodos = new ArrayList<>();
         adapter = new TodoAdapter(new ArrayList<>(), this);
         recyclerView.setAdapter(adapter);
 
-        // Load todos
         loadTodos();
 
-        // Setup category spinner
         setupCategorySpinner();
 
-        // Setup search bar
         setupSearchBar();
 
-        // FAB click listener
         fabAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -117,7 +108,6 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
         editor.putBoolean("dark_mode", !isDarkMode);
         editor.apply();
 
-        // Restart activity to apply theme
         recreate();
     }
 
@@ -214,7 +204,6 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
                 spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 categorySpinner.setAdapter(spinnerAdapter);
 
-                // Set selection to current filter
                 int position = categories.indexOf(selectedCategory);
                 if (position >= 0) {
                     categorySpinner.setSelection(position);
@@ -238,11 +227,9 @@ public class MainActivity extends AppCompatActivity implements TodoAdapter.OnTod
         List<Todo> filtered = new ArrayList<>();
 
         for (Todo todo : allTodos) {
-            // Apply category filter
             boolean matchesCategory = selectedCategory.equals("All") ||
                     todo.getCategory().equals(selectedCategory);
 
-            // Apply search filter
             boolean matchesSearch = searchQuery.isEmpty() ||
                     todo.getTitle().toLowerCase().contains(searchQuery) ||
                     todo.getDescription().toLowerCase().contains(searchQuery);

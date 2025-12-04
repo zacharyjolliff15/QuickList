@@ -1,12 +1,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
     <style name="Base.Theme.QuickList" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- existing items you had -->
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
 
-        <!-- Make primary text use our color that changes in values-night -->
         <item name="android:textColorPrimary">@color/text_primary</item>
     </style>
 </resources>

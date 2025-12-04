@@ -75,7 +75,6 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
             tvCategory.setText(todo.getCategory());
             tvAmount.setText("Qty: " + todo.getAmount());
 
-            // Strike through if completed
             if (todo.isCompleted()) {
                 tvTitle.setPaintFlags(tvTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
                 tvDescription.setPaintFlags(tvDescription.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
@@ -84,14 +83,12 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
                 tvDescription.setPaintFlags(tvDescription.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
             }
 
-            // Hide description if empty
             if (todo.getDescription().isEmpty()) {
                 tvDescription.setVisibility(View.GONE);
             } else {
                 tvDescription.setVisibility(View.VISIBLE);
             }
 
-            // Click listeners
             itemView.setOnClickListener(v -> listener.onTodoClick(todo));
 
             checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {

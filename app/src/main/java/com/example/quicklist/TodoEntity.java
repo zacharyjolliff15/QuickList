@@ -27,7 +27,6 @@ public class TodoEntity {
     @ColumnInfo(name = "created_at")
     private long createdAt;
 
-    // Constructor
     public TodoEntity(String title, String description, String category, int amount) {
         this.title = title;
         this.description = description;
@@ -37,7 +36,6 @@ public class TodoEntity {
         this.createdAt = System.currentTimeMillis();
     }
 
-    // Convert to Todo model
     public Todo toTodo() {
         Todo todo = new Todo(title, description, category, amount);
         todo.setId(id);
@@ -46,7 +44,6 @@ public class TodoEntity {
         return todo;
     }
 
-    // Create from Todo model
     public static TodoEntity fromTodo(Todo todo) {
         TodoEntity entity = new TodoEntity(
                 todo.getTitle(),
@@ -60,7 +57,6 @@ public class TodoEntity {
         return entity;
     }
 
-    // Getters and setters
     public long getId() {
         return id;
     }

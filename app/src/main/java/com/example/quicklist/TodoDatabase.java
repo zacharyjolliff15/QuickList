@@ -24,7 +24,6 @@ public class TodoDatabase {
         return instance;
     }
 
-    // Get all todos with callback
     public void getTodos(final TodoListCallback callback) {
         new AsyncTask<Void, Void, List<Todo>>() {
             @Override
@@ -67,7 +66,6 @@ public class TodoDatabase {
         }.execute();
     }
 
-    // Get categories (synchronous)
     public void getCategories(final CategoriesCallback callback) {
         new AsyncTask<Void, Void, List<String>>() {
             @Override
@@ -90,7 +88,6 @@ public class TodoDatabase {
         }.execute();
     }
 
-    // Add new todo with callback
     public void addTodo(final Todo todo, final OperationCallback callback) {
         new AsyncTask<Void, Void, Boolean>() {
             @Override
@@ -119,7 +116,6 @@ public class TodoDatabase {
         }.execute();
     }
 
-    // Update todo with callback
     public void updateTodo(final Todo todo, final OperationCallback callback) {
         new AsyncTask<Void, Void, Boolean>() {
             @Override
@@ -147,7 +143,6 @@ public class TodoDatabase {
         }.execute();
     }
 
-    // Update todo without callback (for simple updates like checkbox)
     public void updateTodo(final Todo todo) {
         new AsyncTask<Void, Void, Void>() {
             @Override
@@ -163,7 +158,6 @@ public class TodoDatabase {
         }.execute();
     }
 
-    // Delete todo with callback
     public void deleteTodo(final long id, final OperationCallback callback) {
         new AsyncTask<Void, Void, Boolean>() {
             @Override
@@ -190,7 +184,6 @@ public class TodoDatabase {
         }.execute();
     }
 
-    // Callback interfaces
     public interface TodoListCallback {
         void onSuccess(List<Todo> todos);
     }

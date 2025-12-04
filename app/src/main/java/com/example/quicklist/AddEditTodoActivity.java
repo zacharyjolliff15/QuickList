@@ -26,24 +26,20 @@ public class AddEditTodoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_edit_todo);
 
-        // Initialize database
         database = TodoDatabase.getInstance(this);
 
-        // Setup toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        // Initialize views
         etTitle = findViewById(R.id.etTitle);
         etDescription = findViewById(R.id.etDescription);
         etAmount = findViewById(R.id.etAmount);
         categorySpinner = findViewById(R.id.categorySpinner);
         btnSave = findViewById(R.id.btnSave);
 
-        // Check if editing existing todo
         long todoId = getIntent().getLongExtra("TODO_ID", -1);
         if (todoId != -1) {
             isEditMode = true;
@@ -51,7 +47,6 @@ public class AddEditTodoActivity extends AppCompatActivity {
                 getSupportActionBar().setTitle("Edit Task");
             }
 
-            // Load todo asynchronously
             database.getTodoById(todoId, new TodoDatabase.TodoCallback() {
                 @Override
                 public void onSuccess(Todo todo) {
@@ -66,11 +61,9 @@ public class AddEditTodoActivity extends AppCompatActivity {
             if (getSupportActionBar() != null) {
                 getSupportActionBar().setTitle("Add New Task");
             }
-            // Just setup spinner for new tasks
             setupCategorySpinner();
         }
 
-        // Save button click
         btnSave.setOnClickListener(v -> saveTodo());
     }
 
@@ -82,7 +75,6 @@ public class AddEditTodoActivity extends AppCompatActivity {
         categories.add("Health");
         categories.add("Other");
 
-        // Load existing custom categories asynchronously
         database.getCategories(new TodoDatabase.CategoriesCallback() {
             @Override
             public void onSuccess(List<String> existingCategories) {
@@ -92,7 +84,6 @@ public class AddEditTodoActivity extends AppCompatActivity {
                     }
                 }
 
-                // Setup adapter after categories are loaded
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(
                         AddEditTodoActivity.this,
                         android.R.layout.simple_spinner_item,
@@ -102,7 +93,6 @@ public class AddEditTodoActivity extends AppCompatActivity {
                 categorySpinner.setAdapter(adapter);
                 spinnerReady = true;
 
-                // If editing, populate the fields now that spinner is ready
                 if (isEditMode && currentTodo != null) {
                     populateFields();
                 }
@@ -112,7 +102,6 @@ public class AddEditTodoActivity extends AppCompatActivity {
 
     private void populateFields() {
         if (!spinnerReady) {
-            // Spinner not ready yet, will be called again when it is
             return;
         }
 
@@ -120,7 +109,6 @@ public class AddEditTodoActivity extends AppCompatActivity {
         etDescription.setText(currentTodo.getDescription());
         etAmount.setText(String.valueOf(currentTodo.getAmount()));
 
-        // Set category spinner selection
         ArrayAdapter<String> adapter = (ArrayAdapter<String>) categorySpinner.getAdapter();
         if (adapter != null) {
             int position = adapter.getPosition(currentTodo.getCategory());
@@ -136,7 +124,6 @@ public class AddEditTodoActivity extends AppCompatActivity {
         String amountStr = etAmount.getText().toString().trim();
         String category = categorySpinner.getSelectedItem().toString();
 
-        // Validation
         if (title.isEmpty()) {
             etTitle.setError("Title is required");
             etTitle.requestFocus();
@@ -156,7 +143,6 @@ public class AddEditTodoActivity extends AppCompatActivity {
         }
 
         if (isEditMode && currentTodo != null) {
-            // Update existing todo
             currentTodo.setTitle(title);
             currentTodo.setDescription(description);
             currentTodo.setAmount(amount);
@@ -175,7 +161,6 @@ public class AddEditTodoActivity extends AppCompatActivity {
                 }
             });
         } else {
-            // Create new todo
             Todo newTodo = new Todo(title, description, category, amount);
             database.addTodo(newTodo, new TodoDatabase.OperationCallback() {
                 @Override

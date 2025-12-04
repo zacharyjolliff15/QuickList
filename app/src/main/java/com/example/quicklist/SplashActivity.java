@@ -9,8 +9,8 @@ import android.widget.ImageView;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class SplashActivity extends AppCompatActivity {
-    private static final int SPLASH_DURATION = 2000; // 2 seconds total
-    private static final int FADE_DURATION = 500; // 0.5 seconds fade
+    private static final int SPLASH_DURATION = 2000;
+    private static final int FADE_DURATION = 500;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,10 +19,9 @@ public class SplashActivity extends AppCompatActivity {
 
         ImageView splashImage = findViewById(R.id.splashImage);
 
-        // Create fade out animation
         AlphaAnimation fadeOut = new AlphaAnimation(1.0f, 0.0f);
         fadeOut.setDuration(FADE_DURATION);
-        fadeOut.setStartOffset(SPLASH_DURATION - FADE_DURATION); // Start fade after 1.5 seconds
+        fadeOut.setStartOffset(SPLASH_DURATION - FADE_DURATION);
 
         fadeOut.setAnimationListener(new Animation.AnimationListener() {
             @Override
@@ -30,7 +29,6 @@ public class SplashActivity extends AppCompatActivity {
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                // Navigate to MainActivity
                 Intent intent = new Intent(SplashActivity.this, MainActivity.class);
                 startActivity(intent);
                 finish();
@@ -40,7 +38,6 @@ public class SplashActivity extends AppCompatActivity {
             public void onAnimationRepeat(Animation animation) {}
         });
 
-        // Start the fade animation
         splashImage.startAnimation(fadeOut);
     }
 }
